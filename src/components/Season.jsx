@@ -9,6 +9,10 @@ import { onceInView, prefersReducedMotion, showUnits, splitText } from '../lib/s
 // The lap is laid out on a fixed artboard that covers the stage.
 const ARTBOARD = { width: 1440, height: 800 }
 const LAP_BOX = { x: 300, y: 150, width: 800 }
+// Tallest the drawn lap may get (artboard units, measured on the points
+// themselves) before it runs off the bottom of the stage. Wide circuits like
+// Baku/Madring never reach it; taller ones (Sepang, Monaco...) shrink to fit.
+const LAP_MAX_HEIGHT = 560
 const DRAW_MS = 6000
 const FADE_MS = 800
 const REPLAY_DELAY_MS = 4000
@@ -20,8 +24,14 @@ const SPARK_SPAN = 90
 
 function layoutLap() {
   const track = CIRCUITS[NEXT_RACE.circuitKey] ?? CIRCUITS.baku
-  const s = LAP_BOX.width / track.width
-  const pts = track.points.map(([x, y]) => [LAP_BOX.x + x * s, LAP_BOX.y + y * s])
+  const ys = track.points.map(([, y]) => y)
+  const minY = Math.min(...ys)
+  const extent = Math.max(...ys) - minY
+  const s = Math.min(LAP_BOX.width / track.width, LAP_MAX_HEIGHT / extent)
+  const box = { x: LAP_BOX.x + (LAP_BOX.width - track.width * s) / 2, y: LAP_BOX.y, width: track.width * s, height: track.height * s }
+  // A shrunk lap starts a little lower so it sits centred in the same band.
+  if (s < LAP_BOX.width / track.width) box.y += (LAP_BOX.width * 0.75 - LAP_MAX_HEIGHT) / 2 - minY * s
+  const pts = track.points.map(([x, y]) => [box.x + x * s, box.y + y * s])
   pts.push(pts[0])
   const dist = [0]
   for (let i = 1; i < pts.length; i += 1) dist.push(dist[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]))
@@ -31,7 +41,7 @@ function layoutLap() {
     const i = dist.findIndex((v) => v >= d)
     return { x: pts[i][0], y: pts[i][1], d }
   })
-  return { pts, dist, total, sectors, aspect: track.height / track.width }
+  return { pts, dist, total, sectors, box }
 }
 
 function rgbOf(cssColor) {
@@ -89,13 +99,15 @@ function startTrace(canvas, stage) {
     // Landscape covers the artboard; portrait frames the lap itself, which
     // would otherwise sit mostly off-screen.
     const portrait = w < h
-    const lapHeight = LAP_BOX.width * lap.aspect
-    const scale = portrait ? (w * 0.88) / LAP_BOX.width : Math.max(w / ARTBOARD.width, h / ARTBOARD.height)
+    const { box } = lap
+    const scale = portrait
+      ? Math.min((w * 0.88) / box.width, (h * 0.8) / box.height)
+      : Math.max(w / ARTBOARD.width, h / ARTBOARD.height)
     const ox = portrait
-      ? (w - LAP_BOX.width * scale) / 2 - LAP_BOX.x * scale
+      ? (w - box.width * scale) / 2 - box.x * scale
       : (w - ARTBOARD.width * scale) / 2
     const oy = portrait
-      ? (h - lapHeight * scale) / 2 - LAP_BOX.y * scale
+      ? (h - box.height * scale) / 2 - box.y * scale
       : (h - ARTBOARD.height * scale) / 2
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, w, h)
