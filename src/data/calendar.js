@@ -155,6 +155,7 @@ const RACES = [
     name: 'Azerbaijão',
     date: '26 set',
     dateTime: '2026-09-26',
+    result: 'P2',
     gpName: 'gp do azerbaijão',
     circuit: 'baku city circuit',
     circuitKey: 'baku',

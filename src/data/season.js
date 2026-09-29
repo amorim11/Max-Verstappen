@@ -10,7 +10,7 @@
 
 import { CURRENT_RACE, NEXT_RACE_ENTRY } from './calendar'
 
-export const UPDATED_AT = '15 set 2026'
+export const UPDATED_AT = '29 set 2026'
 
 export const DRIVER = {
   id: 'driver_003',
@@ -33,6 +33,16 @@ const RESULTS = {
       { icon: 'bars', label: 'pontos ganhos', value: '+18' },
       { icon: 'trophy', label: 'campeonato', value: 'P6' },
       { icon: 'gauge', label: 'pontos', value: '145' },
+    ],
+  },
+  15: {
+    report:
+      'Largou em P8, ganhou posições no início, trocou para os macios no safety car e passou Piastri na relargada da volta 39. Terminou em P2, a só 0,196s de George Russell — dobradinha de pódio da Red Bull com Hadjar em P3.',
+    stats: [
+      { icon: 'flag', label: 'último resultado', value: 'P2' },
+      { icon: 'bars', label: 'pontos ganhos', value: '+18' },
+      { icon: 'trophy', label: 'campeonato', value: 'P6' },
+      { icon: 'gauge', label: 'pontos', value: '163' },
     ],
   },
 }
@@ -65,14 +75,14 @@ export const NEXT_RACE = describeRace(NEXT_RACE_ENTRY)
 
 export const SEASON_STATS = [
   { label: 'corridas', value: String(CURRENT_RACE.round) },
-  { label: 'pódios', value: '6' },
-  { label: 'pontos', value: '145' },
+  { label: 'pódios', value: '7' },
+  { label: 'pontos', value: '163' },
 ]
 
 export const STANDINGS = [
   { value: 'P6', label: 'no campeonato' },
   { value: '0', label: 'vitórias' },
-  { value: '6', label: 'pódios.' },
+  { value: '7', label: 'pódios.' },
 ]
 
 export const LAST_RACE = { ...describeRace(CURRENT_RACE), ...(RESULTS[CURRENT_RACE.round] ?? PENDING_RESULT) }
